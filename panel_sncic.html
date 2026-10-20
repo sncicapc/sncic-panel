@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Panel SNCIC · Planes de Trabajo — APC Colombia</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --red:#C8102E;--blue:#003087;--cyan:#0078C8;
+  --green:#2E7D32;--orange:#E65100;--teal:#00696B;
+  --gray:#F4F4F4;--mid:#E0E0E0;--border:#D0D0D0;
+  --text:#1A1A1A;--muted:#777;--white:#fff;
+  --shadow:0 2px 8px rgba(0,0,0,.09);--r:4px;--r2:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Open Sans',sans-serif;background:var(--gray);color:var(--text);font-size:13px;}
+.header{background:var(--white);border-bottom:4px solid var(--red);box-shadow:var(--shadow);}
+.header-inner{display:flex;align-items:center;padding:10px 24px;}
+.brand{padding-right:20px;border-right:1px solid var(--border);}
+.brand h1{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;}
+.brand p{font-size:10px;color:var(--muted);margin-top:1px;}
+.hcenter{flex:1;padding:0 20px;}
+.hcenter h2{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:var(--blue);}
+.hcenter p{font-size:11px;color:var(--muted);margin-top:2px;}
+.htags{display:flex;gap:6px;padding-left:16px;border-left:1px solid var(--border);}
+.tag{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;padding:4px 10px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em;}
+.tag-blue{background:var(--blue);color:#fff;}
+.tag-red{background:var(--red);color:#fff;}
+.tag-gray{background:var(--mid);color:#444;}
+.nav{background:var(--blue);display:flex;overflow-x:auto;padding:0 24px;}
+.nav-btn{padding:11px 18px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:rgba(255,255,255,.55);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;letter-spacing:.04em;text-transform:uppercase;}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.nav-btn.active{color:#fff;border-bottom-color:var(--red);}
+.main{padding:18px 24px;max-width:1280px;}
+.section{display:none;}.section.active{display:block;}
+.fbar{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow);}
+.fl{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.fs{font-family:'Open Sans',sans-serif;font-size:12px;padding:5px 22px 5px 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--white);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23777'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;}
+.fr{font-size:11px;color:var(--red);cursor:pointer;background:none;border:none;font-family:'Open Sans',sans-serif;font-weight:600;margin-left:auto;}
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:var(--white);border-radius:var(--r2);box-shadow:var(--shadow);padding:12px 14px;border-top:4px solid var(--blue);}
+.kpi.red{border-top-color:var(--red);}
+.kpi.cyan{border-top-color:var(--cyan);}
+.kpi.green{border-top-color:var(--green);}
+.kpi.orange{border-top-color:var(--orange);}
+.kpi.teal{border-top-color:var(--teal);}
+.kpi-l{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.kpi-v{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:700;color:var(--blue);line-height:1;}
+.kpi.red .kpi-v{color:var(--red);}
+.kpi.cyan .kpi-v{color:var(--cyan);}
+.kpi.green .kpi-v{color:var(--green);}
+.kpi.orange .kpi-v{color:var(--orange);}
+.kpi.teal .kpi-v{color:var(--teal);}
+.kpi-s{font-size:10px;color:var(--muted);margin-top:3px;}
+.card{background:var(--white);border-radius:var(--r2);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:12px;}
+.ct{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.cb{background:var(--gray);border:1px solid var(--border);color:#444;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;font-family:'Montserrat',sans-serif;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+.gmap{display:grid;grid-template-columns:370px 1fr;gap:12px;margin-bottom:12px;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;border-bottom:2px solid var(--border);background:var(--gray);text-align:left;font-family:'Montserrat',sans-serif;}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--mid);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#fafafa;}
+.b{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.03em;font-family:'Montserrat',sans-serif;text-transform:uppercase;}
+.b-g{background:#e8f5e9;color:#1b5e20;}
+.b-y{background:#fff8e1;color:#e65100;}
+.b-b{background:#e3f2fd;color:#0d47a1;}
+.b-r{background:#ffebee;color:#b71c1c;}
+.b-t{background:#e0f2f1;color:#004d40;}
+#map-wrap{position:relative;height:340px;background:#f8f9fa;border-radius:var(--r);}
+#map-svg{width:100%;height:100%;}
+.mtt{position:absolute;background:rgba(0,48,135,.95);color:#fff;padding:8px 12px;border-radius:5px;font-size:11px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10;white-space:nowrap;}
+.mtt strong{font-family:'Montserrat',sans-serif;font-size:12px;display:block;margin-bottom:2px;}
+.map-leg{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.leg-i{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);}
+.leg-d{width:10px;height:10px;border-radius:2px;}
+/* estado cards */
+.est-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+.est-card{background:var(--white);border-radius:var(--r2);box-shadow:var(--shadow);padding:12px 14px;border-left:4px solid var(--border);}
+.est-card.g{border-left-color:var(--green);}
+.est-card.y{border-left-color:var(--orange);}
+.est-card.b{border-left-color:var(--cyan);}
+.est-card.r{border-left-color:var(--red);}
+.est-card-l{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.est-card-v{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:700;line-height:1;}
+.est-card.g .est-card-v{color:var(--green);}
+.est-card.y .est-card-v{color:var(--orange);}
+.est-card.b .est-card-v{color:var(--cyan);}
+.est-card.r .est-card-v{color:var(--red);}
+.est-card-s{font-size:10px;color:var(--muted);margin-top:3px;}
+/* avance espacio */
+.esp-h{background:var(--blue);border-radius:var(--r2);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start;}
+.esp-h h2{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:700;color:#fff;}
+.esp-h p{font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;}
+.btn{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;padding:7px 14px;border-radius:var(--r);cursor:pointer;border:none;letter-spacing:.05em;text-transform:uppercase;}
+.btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);}
+.av-card{background:var(--white);border-radius:var(--r2);box-shadow:var(--shadow);padding:12px 14px;}
+.av-card-l{font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.av-card-v{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:700;line-height:1;}
+.av-card-d{font-size:10px;color:var(--muted);margin-top:4px;}
+.av-mini{height:4px;background:var(--mid);border-radius:2px;overflow:hidden;margin-top:6px;}
+.av-mini-f{height:100%;border-radius:2px;}
+.esp-sel{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);}
+.esp-sel label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+.esp-sel select{flex:1;font-family:'Open Sans',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);}
+.top5-i{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--mid);}
+.top5-i:last-child{border-bottom:none;}
+.top5-r{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:var(--muted);width:18px;flex-shrink:0;}
+.top5-n{font-size:12px;flex:1;}
+.top5-v{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--blue);margin-left:8px;}
+@media print{
+  .nav,.fbar,.esp-sel,.htags,#s1,#s3,#s4,#s5{display:none!important;}
+  body{background:#fff;}
+  #s2{display:block!important;}
+  .card{break-inside:avoid;box-shadow:none;border:1px solid var(--border);}
+  .esp-h .btn{display:none!important;}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <h1>APC Colombia</h1>
+      <p>Dirección de Coordinación Interinstitucional</p>
+    </div>
+    <div class="hcenter">
+      <h2>Sistema Nacional de Cooperación Internacional — SNCIC</h2>
+      <p>Panel de gestión · Planes de trabajo</p>
+    </div>
+    <div class="htags">
+      <span class="tag tag-blue">2026</span>
+      <span class="tag tag-red" id="tag-q">Q2</span>
+      <span class="tag tag-gray" id="tag-fecha">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showSection('s1',this)">▦ Visión general</button>
+  <button class="nav-btn" onclick="showSection('s2',this)">◉ Por espacio</button>
+  <button class="nav-btn" onclick="showSection('s6',this)">👥 Actores</button>
+  <button class="nav-btn" onclick="showSection('s3',this)">🎓 Fortalecimiento</button>
+  <button class="nav-btn" onclick="showSection('s4',this)">🤝 Demanda</button>
+  <button class="nav-btn" onclick="showSection('s5',this)">🏛 Articulación</button>
+  <button class="nav-btn" onclick="showSection('s7',this)">📁 Portafolio</button>
+  <button class="nav-btn" onclick="showSection('s8',this)">📊 Análisis demanda</button>
+</div>
+
+<div class="main">
+
+<!-- S1: VISIÓN GENERAL -->
+<div id="s1" class="section active">
+  <div class="fbar">
+    <span class="fl">Filtrar:</span>
+    <select class="fs" id="f-tipo" onchange="applyFilters()"><option value="">Tipo (todos)</option><option value="Territorial">Territorial</option><option value="Sectorial">Sectorial</option></select>
+    <button class="fr" onclick="resetFilters()">↺ Limpiar</button>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Espacios totales</div><div class="kpi-v" id="k-tot">—</div><div class="kpi-s" id="k-act">—</div></div>
+    <div class="kpi cyan"><div class="kpi-l">Territoriales</div><div class="kpi-v" id="k-ter">—</div><div class="kpi-s">departamentales</div></div>
+    <div class="kpi teal"><div class="kpi-l">Sectoriales</div><div class="kpi-v" id="k-sec">—</div><div class="kpi-s">mesas sectoriales</div></div>
+    <div class="kpi" id="kpi-dem-card"><div class="kpi-l">Demanda</div><div class="kpi-v" id="k-dem">—</div><div class="kpi-s" id="k-dem-s">—</div></div>
+    <div class="kpi" id="kpi-fc-card"><div class="kpi-l">Fortalecimiento</div><div class="kpi-v" id="k-fc">—</div><div class="kpi-s" id="k-fc-s">—</div></div>
+    <div class="kpi" id="kpi-art-card"><div class="kpi-l">Articulación</div><div class="kpi-v" id="k-art">—</div><div class="kpi-s" id="k-art-s">—</div></div>
+    <div class="kpi" style="border-top-color:#00696B"><div class="kpi-l">Portafolio</div><div class="kpi-v" id="k-port" style="color:#00696B">—</div><div class="kpi-s" id="k-port-s">proyectos</div></div>
+  </div>
+  <div class="gmap">
+    <div class="card">
+      <div class="ct">Espacios territoriales <span class="cb" id="map-count">—</span></div>
+      <div id="map-wrap"><svg id="map-svg"></svg><div class="mtt" id="mtt"></div></div>
+      <div class="map-leg" id="map-leg"></div>
+    </div>
+    <div class="card" style="overflow-y:auto;max-height:420px;">
+      <div class="ct">Avance por espacio <span class="cb" id="av-count">—</span></div>
+      <div id="av-lista"></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct">Top 5 · Mayor número de participantes</div>
+      <div id="top5-part"></div>
+    </div>
+    <div class="card">
+      <div class="ct">Top 5 · Mayor diversidad de actores</div>
+      <div id="top5-div"></div>
+    </div>
+  </div>
+</div>
+
+<!-- S2: POR ESPACIO -->
+<div id="s2" class="section">
+  <div class="esp-sel">
+    <label>Seleccionar espacio:</label>
+    <select id="esp-sel" onchange="renderEspacio()"><option value="">— elige un espacio —</option></select>
+  </div>
+  <div id="esp-content"></div>
+</div>
+
+<!-- S3: FORTALECIMIENTO -->
+<!-- S6: ACTORES -->
+<div id="s6" class="section">
+  <div class="kpi-row" id="a-kpis" style="grid-template-columns:repeat(3,1fr)"></div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="ct">Distribución por tipo de organización <span class="cb" id="a-tipo-badge">—</span></div>
+    <div id="a-tipo-lista"></div>
+  </div>
+  <div class="card">
+    <div class="ct">Buscar actor por nombre</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <input type="text" id="a-busq" placeholder="Buscar por nombre de organización..." style="flex:2;min-width:200px;font-family:'Open Sans',sans-serif;font-size:12px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);" oninput="buscarActor()">
+      <select class="fs" id="a-f-tipoorg" onchange="buscarActor()"><option value="">Tipo de actor (todos)</option></select>
+      <select class="fs" id="a-f-esp" onchange="buscarActor()"><option value="">Espacio (todos)</option></select>
+      <button class="fr" onclick="document.getElementById('a-busq').value='';document.getElementById('a-f-tipoorg').value='';document.getElementById('a-f-esp').value='';buscarActor()">↺ Limpiar</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="tbl"><thead><tr><th>Organización</th><th>Tipo</th><th>Rol</th><th>Espacio</th><th>Tipo espacio</th></tr></thead><tbody id="a-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+<!-- S7: PORTAFOLIO -->
+<div id="s7" class="section">
+  <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px" id="port-kpis"></div>
+  <div class="fbar" style="margin-bottom:12px">
+    <span class="fl">Filtrar:</span>
+    <select class="fs" id="port-f-tipo" onchange="poblarSelectPortafolio();renderPortafolio()"><option value="">Tipo espacio (todos)</option><option value="Territorial">Territorial</option><option value="Sectorial">Sectorial</option></select>
+    <select class="fs" id="port-f-esp" onchange="renderPortafolio()"><option value="">Espacio (todos)</option></select>
+    <select class="fs" id="port-f-modal" onchange="renderPortafolio()"><option value="">Modalidad (todas)</option></select>
+    <button class="fr" onclick="limpiarFiltrosPort()">↺ Limpiar</button>
+    <button onclick="descargarExcelConNombre(DATA.portafolio,'Portafolio_SNCIC','Portafolio')" style="font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;padding:4px 10px;background:#003087;color:#fff;border:none;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;margin-left:4px;">⬇ Excel</button>
+  </div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card"><div class="ct">Por espacio <span class="cb" id="port-esp-badge">—</span></div><div id="port-por-esp"></div></div>
+    <div class="card"><div class="ct">Por modalidad <span class="cb" id="port-modal-badge">—</span></div><div id="port-por-modal"></div></div>
+  </div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card"><div class="ct">Por ODS <span class="cb" id="port-ods-badge">—</span></div><div id="port-por-ods"></div></div>
+    <div class="card"><div class="ct">Por enfoque temático <span class="cb" id="port-enfoque-badge">—</span></div><div id="port-por-enfoque"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="ct">Por departamento <span class="cb" id="port-dep-badge">—</span></div>
+    <div id="port-por-dep" style="columns:2;gap:16px"></div>
+  </div>
+  <!-- Modal ficha proyecto -->
+  <div id="port-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;overflow-y:auto">
+    <div style="background:#fff;max-width:860px;margin:40px auto;border-radius:6px;box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden">
+      <div style="background:#003087;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);font-family:'Montserrat',sans-serif;text-transform:uppercase;letter-spacing:.06em">Ficha del proyecto</div>
+          <div id="port-modal-title" style="font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-top:4px"></div>
+        </div>
+        <button onclick="cerrarFicha()" style="background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;padding:6px 12px;border-radius:4px;font-size:12px;font-family:'Montserrat',sans-serif;font-weight:700">✕ Cerrar</button>
+      </div>
+      <div id="port-modal-body" style="padding:20px;overflow-y:auto;max-height:calc(100vh - 160px)"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Proyectos <span class="cb" id="port-badge">—</span>
+      <span id="port-filtro-activo" style="margin-left:8px;font-size:10px;color:#003087"></span>
+      <button onclick="limpiarFiltrosPort()" style="margin-left:auto;font-size:9px;font-weight:700;padding:3px 8px;background:#f4f4f4;border:1px solid #D0D0D0;border-radius:3px;cursor:pointer;font-family:Montserrat,sans-serif;color:#777">↺ Limpiar filtros</button>
+    </div>
+    <div style="padding:6px 0 8px">
+      <input type="text" id="port-busq-txt" placeholder="Buscar proyecto u organización..." oninput="window._portFiltro.q=this.value;renderPortafolio()" style="width:100%;font-family:'Open Sans',sans-serif;font-size:12px;padding:6px 10px;border:1px solid #D0D0D0;border-radius:4px">
+    </div>
+    <div style="overflow-x:auto">
+      <table class="tbl"><thead><tr><th>Proyecto</th><th>Espacio</th><th>Tipo</th><th>Entidad</th><th>Modalidad</th></tr></thead><tbody id="port-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+<!-- S8: ANÁLISIS DE DEMANDAS -->
+<div id="s8" class="section">
+  <div style="width:100%;height:85vh;border:none;border-radius:6px;overflow:hidden;">
+    <iframe 
+      src="https://paneldemanda.streamlit.app/?embedded=true" 
+      style="width:100%;height:100%;border:none;"
+      allow="fullscreen"
+      loading="lazy"
+      title="Análisis de demanda SNCIC">
+    </iframe>
+  </div>
+</div>
+
+<div id="s3" class="section">
+  <div class="est-cards" id="fc-est-cards"></div>
+  <div class="card">
+    <div class="ct">Fortalecimiento de capacidades <span class="cb" id="fc-badge">—</span>
+      <button onclick="descargarExcelConNombre(DATA.fortalecimiento,'Fortalecimiento_SNCIC','Fortalecimiento')" style="margin-left:8px;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;padding:4px 10px;background:#003087;color:#fff;border:none;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;">⬇ Excel</button>
+    </div>
+    <div class="fbar" style="margin-bottom:10px;">
+      <span class="fl">Filtrar:</span>
+      <select class="fs" id="fc-f-esp" onchange="renderFC()"><option value="">Espacio (todos)</option></select>
+      <select class="fs" id="fc-f-tipo" onchange="renderFC()"><option value="">Tipo (todos)</option><option value="Territorial">Territorial</option><option value="Sectorial">Sectorial</option></select>
+      <select class="fs" id="fc-f-cat" onchange="renderFC()"><option value="">Categoría (todas)</option></select>
+      <select class="fs" id="fc-f-est" onchange="renderFC()"><option value="">Estado (todos)</option><option value="Gestionada con éxito">Gestionada con éxito</option><option value="En gestión">En gestión</option><option value="Presentada">Presentada</option><option value="Sin gestión">Sin gestión</option></select>
+      <button class="fr" onclick="resetFC()">↺ Limpiar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Espacio</th><th>Tipo</th><th>Necesidad</th><th>Categoría</th><th>Población obj.</th><th>Gestión realizada</th><th>Estado</th></tr></thead><tbody id="fc-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- S4: DEMANDA -->
+<div id="s4" class="section">
+  <div class="est-cards" id="dem-est-cards"></div>
+  <div class="card">
+    <div class="ct">Gestión de la demanda <span class="cb" id="dem-badge">—</span>
+      <button onclick="descargarExcelConNombre(DATA.demanda,'Demanda_SNCIC','Demanda')" style="margin-left:8px;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;padding:4px 10px;background:#003087;color:#fff;border:none;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;">⬇ Excel</button>
+    </div>
+    <div class="fbar" style="margin-bottom:10px;">
+      <span class="fl">Filtrar:</span>
+      <select class="fs" id="dem-f-esp" onchange="renderDem()"><option value="">Espacio (todos)</option></select>
+      <select class="fs" id="dem-f-tipo" onchange="renderDem()"><option value="">Tipo (todos)</option><option value="Territorial">Territorial</option><option value="Sectorial">Sectorial</option></select>
+      <select class="fs" id="dem-f-apoyo" onchange="renderDem()">
+        <option value="">Tipo de apoyo (todos)</option>
+        <option value="Cooperación técnica">Cooperación técnica</option>
+        <option value="Cooperación financiera no reembolsable">Cooperación financiera no reembolsable</option>
+        <option value="Donación en especie">Donación en especie</option>
+        <option value="Ayuda humanitaria">Ayuda humanitaria</option>
+        <option value="Nuevos mecanismos de financiación (Filantropía, inversión de impacto)">Nuevos mecanismos de financiación</option>
+        <option value="Otros">Otros</option>
+      </select>
+      <select class="fs" id="dem-f-est" onchange="renderDem()"><option value="">Estado (todos)</option><option value="Gestionada con éxito">Gestionada con éxito</option><option value="En gestión">En gestión</option><option value="Presentada">Presentada</option><option value="Sin gestión">Sin gestión</option></select>
+      <button class="fr" onclick="resetDem()">↺ Limpiar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Espacio</th><th>Tipo</th><th>Iniciativa</th><th>Tipo de apoyo</th><th>En portafolio</th><th>Líder</th><th>Estado</th></tr></thead><tbody id="dem-tbody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- S5: ARTICULACIÓN -->
+<div id="s5" class="section">
+  <div class="est-cards" id="art-est-cards"></div>
+  <div class="card">
+    <div class="ct">Articulación institucional <span class="cb" id="art-badge">—</span>
+      <button onclick="descargarExcelConNombre(DATA.articulacion,'Articulacion_SNCIC','Articulación')" style="margin-left:8px;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;padding:4px 10px;background:#003087;color:#fff;border:none;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;">⬇ Excel</button>
+    </div>
+    <div class="fbar" style="margin-bottom:10px;">
+      <span class="fl">Filtrar:</span>
+      <select class="fs" id="art-f-esp" onchange="renderArt()"><option value="">Espacio (todos)</option></select>
+      <select class="fs" id="art-f-tipo" onchange="renderArt()"><option value="">Tipo (todos)</option><option value="Territorial">Territorial</option><option value="Sectorial">Sectorial</option></select>
+      <select class="fs" id="art-f-est" onchange="renderArt()"><option value="">Estado (todos)</option><option value="Gestionada con éxito">Gestionada con éxito</option><option value="En gestión">En gestión</option><option value="Presentada">Presentada</option><option value="Sin gestión">Sin gestión</option></select>
+      <button class="fr" onclick="resetArt()">↺ Limpiar</button>
+    </div>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Espacio</th><th>Tipo</th><th>Gestión</th><th>Categoría</th><th>Líder</th><th>Estado</th></tr></thead><tbody id="art-tbody"></tbody></table></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const DATA = __PANEL_DATA__;
+
+// Fecha
+const hoy=new Date();
+const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+document.getElementById('tag-fecha').textContent=`${hoy.getDate()} ${meses[hoy.getMonth()]} ${hoy.getFullYear()}`;
+const m=hoy.getMonth();
+document.getElementById('tag-q').textContent=m<3?'Q1':m<6?'Q2':m<9?'Q3':'Q4';
+
+// Helpers
+function bStyle(e){
+  const mp={'Gestionada con éxito':'b-g','Gestionada':'b-g','En gestión':'b-y','Presentada':'b-b','Sin gestión':'b-r','Por gestionar':'b-r','Activo':'b-g','Inactivo':'b-r','Territorial':'b-b','Sectorial':'b-t'};
+  return`<span class="b ${mp[e]||'b-r'}">${e||'Sin gestión'}</span>`;
+}
+
+function calcAv(items){
+  if(!items||!items.length)return{pct:0,gest:0,en_gest:0,pres:0,sin:0,total:0};
+  const total=items.length;
+  const gest=items.filter(x=>x.estado_gestion==='Gestionada con éxito'||x.estado_gestion==='Gestionada').length;
+  const en_gest=items.filter(x=>x.estado_gestion==='En gestión').length;
+  const pres=items.filter(x=>x.estado_gestion==='Presentada').length;
+  const sin=total-gest-en_gest-pres;
+  const pct=total?Math.round((gest*100+en_gest*50+pres*25)/total):0;
+  return{pct,gest,en_gest,pres,sin,total};
+}
+// Normalizar estado para filtros
+function normEstFiltro(e){
+  if(!e)return'Sin gestión';
+  if(e==='Gestionada')return'Gestionada con éxito';
+  if(e==='Por gestionar')return'Sin gestión';
+  return e;
+}
+
+function avColor(p){if(p>=80)return'#033270';if(p>=50)return'#1368aa';if(p>=30)return'#f26a4f';return'#ef3c2d';}
+
+function getTipoEsp(cod){
+  const e=(DATA.espacios||[]).find(x=>String(x.codigo_espacio)===String(cod));
+  return e?e.tipo_espacio:'';
+}
+function normEst(e){
+  // Normalizar "Por gestionar" y "Gestionada" a valores estándar
+  if(e==='Por gestionar'||e==='Sin gestión'||!e)return'Sin gestión';
+  if(e==='Gestionada')return'Gestionada con éxito';
+  return e;
+}
+function getNombreEsp(cod){
+  const e=(DATA.espacios||[]).find(x=>String(x.codigo_espacio)===String(cod));
+  return e?e.nombre_espacio:cod;
+}
+
+function pct(n,tot){return tot?Math.round(n/tot*100):0;}
+
+function estCards(items,containerId){
+  // Normalizar estados antes de calcular
+  const itemsNorm=items.map(x=>({...x,estado_gestion:normEstFiltro(x.estado_gestion)}));
+  const av=calcAv(itemsNorm);
+  const t=av.total||1;
+  document.getElementById(containerId).innerHTML=`
+    <div class="est-card g"><div class="est-card-l">Gestionada con éxito</div><div class="est-card-v">${pct(av.gest,t)}%</div><div class="est-card-s">${av.gest} de ${av.total}</div></div>
+    <div class="est-card y"><div class="est-card-l">En gestión</div><div class="est-card-v">${pct(av.en_gest,t)}%</div><div class="est-card-s">${av.en_gest} de ${av.total}</div></div>
+    <div class="est-card b"><div class="est-card-l">Presentada</div><div class="est-card-v">${pct(av.pres,t)}%</div><div class="est-card-s">${av.pres} de ${av.total}</div></div>
+    <div class="est-card r"><div class="est-card-l">Sin gestión</div><div class="est-card-v">${pct(av.sin,t)}%</div><div class="est-card-s">${av.sin} de ${av.total}</div></div>`;
+}
+
+// Filtros globales
+let fil={tipo:'',estado:''};
+function applyFilters(){fil.tipo=document.getElementById('f-tipo').value;fil.estado='';renderAll();}
+function resetFilters(){document.getElementById('f-tipo').value='';fil={tipo:'',estado:''};renderAll();}
+function getEsp(){
+  return(DATA.espacios||[]).filter(e=>{
+    if(fil.tipo&&e.tipo_espacio!==fil.tipo)return false;
+    if(fil.estado&&e.estado!==fil.estado)return false;
+    return true;
+  });
+}
+
+// normCat global
+function normCat(s){
+  return (s||'').replace(/_/g,' ').replace(/\s+/g,' ').trim()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+}
+function getEspCol(p){
+  var keys=Object.keys(p);
+  var k=keys.find(function(k){return k.toUpperCase().indexOf('ESPACIO')>=0;});
+  return k?(p[k]||''):'';
+}
+function getEspNombre(val){
+  if(!val)return{nombre:val,tipo:''};
+  var v=val.trim().toUpperCase();
+  var e=(DATA.espacios||[]).find(function(x){return(x.nombre_espacio||'').toUpperCase().trim()===v;});
+  return{nombre:val,tipo:e?e.tipo_espacio:''};
+}
+
+// Poblar selects de componentes
+function poblarSelectsComponentes(){
+  const esp=DATA.espacios||[];
+  var catsFcMap={};
+  (DATA.fortalecimiento||[]).forEach(function(x){
+    var raw=(x.categoria_necesidad||'').trim();if(!raw)return;
+    var key=normCat(raw);if(!catsFcMap[key])catsFcMap[key]=raw.replace(/_/g,' ');
+  });
+
+  ['fc-f-esp','dem-f-esp','art-f-esp'].forEach(id=>{
+    const s=document.getElementById(id);
+    const prev=s.value;
+    s.innerHTML='<option value="">Espacio (todos)</option>';
+    esp.forEach(e=>{const o=document.createElement('option');o.value=e.codigo_espacio;o.textContent=`${e.codigo_espacio} · ${e.nombre_espacio}`;s.appendChild(o);});
+    if(prev)s.value=prev;
+  });
+
+  const fcCat=document.getElementById('fc-f-cat');
+  const prevCat=fcCat.value;
+  fcCat.innerHTML='<option value="">Categoría (todas)</option>';
+  Object.entries(catsFcMap).sort(function(a,b){return a[1].localeCompare(b[1]);}).forEach(function(entry){var o=document.createElement('option');o.value=entry[0];o.textContent=entry[1];fcCat.appendChild(o);});
+  if(prevCat)fcCat.value=prevCat;
+
+  // Actores
+  var tiposOrg=new Set((DATA.participantes||[]).map(function(p){return p.tipo_organizacion;}).filter(Boolean));
+  var fTipoOrg=document.getElementById('a-f-tipoorg');
+  if(fTipoOrg){var pt=fTipoOrg.value;fTipoOrg.innerHTML='<option value="">Tipo de actor (todos)</option>';[...tiposOrg].sort().forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t;fTipoOrg.appendChild(o);});if(pt)fTipoOrg.value=pt;}
+  var fEspA=document.getElementById('a-f-esp');
+  if(fEspA){var pe=fEspA.value;fEspA.innerHTML='<option value="">Espacio (todos)</option>';(DATA.espacios||[]).forEach(function(e){var o=document.createElement('option');o.value=e.codigo_espacio;o.textContent=e.codigo_espacio+' · '+e.nombre_espacio;fEspA.appendChild(o);});if(pe)fEspA.value=pe;}
+}
+
+// Render FC
+function renderFC(){
+  const fEsp=document.getElementById('fc-f-esp').value;
+  const fTipo=document.getElementById('fc-f-tipo').value;
+  const fCat=document.getElementById('fc-f-cat').value;
+  const fEst=document.getElementById('fc-f-est').value;
+  const items=(DATA.fortalecimiento||[]).filter(x=>{
+    if(fEsp&&String(x.codigo_espacio)!==String(fEsp))return false;
+    if(fTipo&&getTipoEsp(x.codigo_espacio)!==fTipo)return false;
+    if(fCat&&normCat(x.categoria_necesidad||'')!==fCat)return false;
+    if(fEst&&normEstFiltro(x.estado_gestion)!==fEst)return false;
+    return true;
+  });
+  estCards(items,'fc-est-cards');
+  document.getElementById('fc-badge').textContent=items.length+' registros';
+  document.getElementById('fc-tbody').innerHTML=items.map(x=>`<tr>
+    <td style="font-size:11px;font-weight:600">${getNombreEsp(x.codigo_espacio)}</td>
+    <td>${bStyle(getTipoEsp(x.codigo_espacio))}</td>
+    <td style="font-size:11px">${x.necesidad_identificada||'—'}</td>
+    <td style="font-size:11px;color:var(--muted)">${x.categoria_necesidad||'—'}</td>
+    <td style="font-size:11px">${x.poblacion_objetivo||'—'}</td>
+    <td style="font-size:11px">${x.gestion_realizada||'—'}</td>
+    <td>${bStyle(x.estado_gestion)}</td>
+  </tr>`).join('')||'<tr><td colspan="7" style="color:#aaa;padding:12px">Sin datos</td></tr>';
+}
+function resetFC(){['fc-f-esp','fc-f-tipo','fc-f-cat','fc-f-est'].forEach(id=>document.getElementById(id).value='');renderFC();}
+
+// Render DEM
+function renderDem(){
+  const fEsp=document.getElementById('dem-f-esp').value;
+  const fTipo=document.getElementById('dem-f-tipo').value;
+  const fApoyo=document.getElementById('dem-f-apoyo')?document.getElementById('dem-f-apoyo').value:'';
+  const fEst=document.getElementById('dem-f-est').value;
+  const items=(DATA.demanda||[]).filter(x=>{
+    if(fEsp&&String(x.codigo_espacio)!==String(fEsp))return false;
+    if(fTipo&&getTipoEsp(x.codigo_espacio)!==fTipo)return false;
+    if(fApoyo){
+      const tipos=String(x.tipo_apoyo_requerido||'').split(',').map(t=>t.trim().toLowerCase());
+      if(!tipos.some(t=>t===fApoyo.toLowerCase()))return false;
+    }
+    if(fEst&&normEstFiltro(x.estado_gestion)!==fEst)return false;
+    return true;
+  });
+  estCards(items,'dem-est-cards');
+  document.getElementById('dem-badge').textContent=items.length+' registros';
+  document.getElementById('dem-tbody').innerHTML=items.map(x=>`<tr>
+    <td style="font-size:11px;font-weight:600">${getNombreEsp(x.codigo_espacio)}</td>
+    <td>${bStyle(getTipoEsp(x.codigo_espacio))}</td>
+    <td style="font-size:11px">${x.nombre_iniciativa||'—'}</td>
+    <td style="font-size:11px;color:var(--muted)">${x.tipo_apoyo_requerido||'—'}</td>
+    <td style="font-size:11px;text-align:center">${x.en_portafolio||'—'}</td>
+    <td style="font-size:11px">${x.lider_gestion||'—'}</td>
+    <td>${bStyle(x.estado_gestion)}</td>
+  </tr>`).join('')||'<tr><td colspan="7" style="color:#aaa;padding:12px">Sin datos</td></tr>';
+}
+function resetDem(){['dem-f-esp','dem-f-tipo','dem-f-apoyo','dem-f-est'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderDem();}
+
+// Render ART
+function renderArt(){
+  const fEsp=document.getElementById('art-f-esp').value;
+  const fTipo=document.getElementById('art-f-tipo').value;
+  const fEst=document.getElementById('art-f-est').value;
+  const items=(DATA.articulacion||[]).filter(x=>{
+    if(fEsp&&String(x.codigo_espacio)!==String(fEsp))return false;
+    if(fTipo&&getTipoEsp(x.codigo_espacio)!==fTipo)return false;
+    if(fEst&&normEstFiltro(x.estado_gestion)!==fEst)return false;
+    return true;
+  });
+  estCards(items,'art-est-cards');
+  document.getElementById('art-badge').textContent=items.length+' registros';
+  document.getElementById('art-tbody').innerHTML=items.map(x=>`<tr>
+    <td style="font-size:11px;font-weight:600">${getNombreEsp(x.codigo_espacio)}</td>
+    <td>${bStyle(getTipoEsp(x.codigo_espacio))}</td>
+    <td style="font-size:11px">${x.nombre_gestion||'—'}</td>
+    <td style="font-size:11px;color:var(--muted)">${x.categoria_gestion||'—'}</td>
+    <td style="font-size:11px">${x.lider_gestion||'—'}</td>
+    <td>${bStyle(x.estado_gestion)}</td>
+  </tr>`).join('')||'<tr><td colspan="6" style="color:#aaa;padding:12px">Sin datos</td></tr>';
+}
+function resetArt(){['art-f-esp','art-f-tipo','art-f-est'].forEach(id=>document.getElementById(id).value='');renderArt();}
+
+// Render principal
+function renderAll(){
+  const esp=getEsp();
+  const cods=esp.map(e=>String(e.codigo_espacio));
+  const demF=(DATA.demanda||[]).filter(x=>cods.includes(String(x.codigo_espacio)));
+  const fcF=(DATA.fortalecimiento||[]).filter(x=>cods.includes(String(x.codigo_espacio)));
+  const artF=(DATA.articulacion||[]).filter(x=>cods.includes(String(x.codigo_espacio)));
+
+  document.getElementById('k-tot').textContent=esp.length;
+  document.getElementById('k-act').textContent=esp.filter(e=>e.estado==='Activo').length+' activos';
+  document.getElementById('k-ter').textContent=esp.filter(e=>e.tipo_espacio==='Territorial').length;
+  document.getElementById('k-sec').textContent=esp.filter(e=>e.tipo_espacio==='Sectorial').length;
+  const avDemG=calcAv(demF), avFcG=calcAv(fcF), avArtG=calcAv(artF);
+  // Demanda
+  document.getElementById('k-dem').textContent=demF.length;
+  document.getElementById('k-dem').style.color=avColor(avDemG.pct);
+  document.getElementById('k-dem-s').textContent='Avance '+avDemG.pct+'%';
+  document.getElementById('kpi-dem-card').style.borderTopColor=avColor(avDemG.pct);
+  // Fortalecimiento
+  document.getElementById('k-fc').textContent=fcF.length;
+  document.getElementById('k-fc').style.color=avColor(avFcG.pct);
+  document.getElementById('k-fc-s').textContent='Avance '+avFcG.pct+'%';
+  document.getElementById('kpi-fc-card').style.borderTopColor=avColor(avFcG.pct);
+  // Articulación
+  document.getElementById('k-art').textContent=artF.length;
+  document.getElementById('k-art').style.color=avColor(avArtG.pct);
+  document.getElementById('k-art-s').textContent='Avance '+avArtG.pct+'%';
+  document.getElementById('kpi-art-card').style.borderTopColor=avColor(avArtG.pct);
+  var kPort=document.getElementById('k-port');if(kPort){var ptLen=(DATA.portafolio||[]).length;kPort.textContent=ptLen;var kps=document.getElementById('k-port-s');if(kps)kps.textContent=ptLen===1?'proyecto':'proyectos';}
+  document.getElementById('map-count').textContent=esp.filter(e=>e.tipo_espacio==='Territorial').length+' espacios';
+
+  // Lista avance
+  document.getElementById('av-count').textContent=esp.length+' espacios';
+  const espOrdenados=[...esp].sort((a,b)=>{
+    function getAv(e){
+      const c=String(e.codigo_espacio);
+      const dem=(DATA.demanda||[]).filter(x=>String(x.codigo_espacio)===c);
+      const fc=(DATA.fortalecimiento||[]).filter(x=>String(x.codigo_espacio)===c);
+      const art=(DATA.articulacion||[]).filter(x=>String(x.codigo_espacio)===c);
+      return calcAv([...dem,...fc,...art]).pct;
+    }
+    return getAv(b)-getAv(a);
+  });
+  document.getElementById('av-lista').innerHTML=espOrdenados.map(e=>{
+    const c=String(e.codigo_espacio);
+    const dem=(DATA.demanda||[]).filter(x=>String(x.codigo_espacio)===c);
+    const fc=(DATA.fortalecimiento||[]).filter(x=>String(x.codigo_espacio)===c);
+    const art=(DATA.articulacion||[]).filter(x=>String(x.codigo_espacio)===c);
+    const avG=calcAv([...dem,...fc,...art]);
+    const avDem=calcAv(dem),avFc=calcAv(fc),avArt=calcAv(art);
+    const col=avColor(avG.pct);
+    return`<div style="border-bottom:1px solid var(--mid);padding:7px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+        <span style="font-size:11px;font-weight:600">${e.nombre_espacio||c}</span>
+        <span style="font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;color:${col}">${avG.pct}%</span>
+      </div>
+      <div style="height:5px;background:var(--mid);border-radius:3px;overflow:hidden;margin-bottom:4px;">
+        <div style="width:${avG.pct}%;height:100%;background:${col};border-radius:3px;"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        ${(avFc.total>0)?`<span style="font-size:10px;color:var(--muted)">FC: <b style="color:${avColor(avFc.pct)}">${avFc.pct}%</b></span>`:''}
+        ${(avDem.total>0)?`<span style="font-size:10px;color:var(--muted)">Dem: <b style="color:${avColor(avDem.pct)}">${avDem.pct}%</b></span>`:''}
+        ${(avArt.total>0)?`<span style="font-size:10px;color:var(--muted)">Art: <b style="color:${avColor(avArt.pct)}">${avArt.pct}%</b></span>`:''}
+        <span style="margin-left:auto">${bStyle(e.tipo_espacio)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Top 5 participantes
+  const pc={};
+  (DATA.participantes||[]).forEach(p=>{const c=String(p.codigo_espacio);if(cods.includes(c))pc[c]=(pc[c]||0)+1;});
+  document.getElementById('top5-part').innerHTML=Object.entries(pc).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([c,n],i)=>`<div class="top5-i"><span class="top5-r">${i+1}.</span><span class="top5-n">${getNombreEsp(c)}</span><span class="top5-v">${n}</span></div>`)
+    .join('')||'<p style="color:#aaa;font-size:11px">Sin datos</p>';
+
+  // Top 5 diversidad
+  const pd={};
+  (DATA.participantes||[]).forEach(p=>{const c=String(p.codigo_espacio);if(!cods.includes(c))return;if(!pd[c])pd[c]=new Set();if(p.tipo_organizacion)pd[c].add(p.tipo_organizacion);});
+  document.getElementById('top5-div').innerHTML=Object.entries(pd).sort((a,b)=>b[1].size-a[1].size).slice(0,5)
+    .map(([c,t],i)=>`<div class="top5-i"><span class="top5-r">${i+1}.</span><span class="top5-n">${getNombreEsp(c)}</span><span class="top5-v">${t.size} <span style="font-size:10px;font-weight:400;color:var(--muted)">tipos</span></span></div>`)
+    .join('')||'<p style="color:#aaa;font-size:11px">Sin datos</p>';
+
+  // Selector espacio
+  const sel=document.getElementById('esp-sel');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">— elige un espacio —</option>';
+  esp.forEach(e=>{const o=document.createElement('option');o.value=e.codigo_espacio;o.textContent=`${e.codigo_espacio} · ${e.nombre_espacio}`;sel.appendChild(o);});
+  if(prev)sel.value=prev;
+
+  renderFC();renderDem();renderArt();
+}
+
+// Espacio individual
+function renderEspacio(){
+  const cod=document.getElementById('esp-sel').value;
+  const cont=document.getElementById('esp-content');
+  if(!cod){cont.innerHTML='';return;}
+  const e=(DATA.espacios||[]).find(x=>String(x.codigo_espacio)===String(cod));
+  if(!e){cont.innerHTML='';return;}
+  const dem=(DATA.demanda||[]).filter(x=>String(x.codigo_espacio)===String(cod));
+  const fc=(DATA.fortalecimiento||[]).filter(x=>String(x.codigo_espacio)===String(cod));
+  const art=(DATA.articulacion||[]).filter(x=>String(x.codigo_espacio)===String(cod));
+  const part=(DATA.participantes||[]).filter(x=>String(x.codigo_espacio)===String(cod));
+  const avG=calcAv([...dem,...fc,...art]),avDem=calcAv(dem),avFc=calcAv(fc),avArt=calcAv(art);
+
+  function avCard(lbl,av){
+    const c=avColor(av.pct);
+    // No mostrar tarjeta si no hay compromisos registrados (total=0)
+    if(av.total===0)return '';
+    return`<div class="av-card"><div class="av-card-l">${lbl}</div><div class="av-card-v" style="color:${c}">${av.pct}%</div>
+    <div class="av-mini"><div class="av-mini-f" style="width:${av.pct}%;background:${c}"></div></div>
+    <div class="av-card-d">${av.gest} gest · ${av.en_gest} en gest · ${av.pres} pres · ${av.total} total</div></div>`;
+  }
+  function pN(p){return p.nombre_organizacion||p.nombre_si_no_publico||'—';}
+
+  const partRows=part.map(p=>`<tr><td style="font-weight:600">${pN(p)}</td><td style="font-size:11px;color:var(--muted)">${p.tipo_organizacion||'—'}</td><td>${bStyle(p.rol||'—')}</td></tr>`).join('')||'<tr><td colspan="5" style="color:#aaa">Sin registros</td></tr>';
+  const fcRows=fc.map(x=>`<tr><td style="font-size:11px">${x.necesidad_identificada||'—'}</td><td style="font-size:11px;color:var(--muted)">${x.categoria_necesidad||'—'}</td><td>${bStyle(x.estado_gestion)}</td></tr>`).join('')||'<tr><td colspan="3" style="color:#aaa">Sin datos</td></tr>';
+  const demRows=dem.map(x=>`<tr><td style="font-size:11px">${x.nombre_iniciativa||'—'}</td><td style="font-size:11px;color:var(--muted)">${x.tipo_apoyo_requerido||'—'}</td><td>${bStyle(x.estado_gestion)}</td></tr>`).join('')||'<tr><td colspan="3" style="color:#aaa">Sin datos</td></tr>';
+  const artRows=art.map(x=>`<tr><td style="font-size:11px">${x.nombre_gestion||'—'}</td><td style="font-size:11px;color:var(--muted)">${x.categoria_gestion||'—'}</td><td>${bStyle(x.estado_gestion)}</td></tr>`).join('')||'<tr><td colspan="3" style="color:#aaa">Sin datos</td></tr>';
+
+  cont.innerHTML=`
+    <div class="esp-h">
+      <div>
+        <p>${e.tipo_espacio||''} · ${e.codigo_espacio||''} · Periodicidad: ${e.periodicidad||'—'} · Próximo seguimiento: ${e.proximo_seguimiento||'—'}</p>
+        <h2>${e.nombre_espacio||'—'}</h2>
+        <p style="margin-top:3px">Enlace APC: ${e.responsable_apc||'—'} · Última actualización: ${e.ultima_actualizacion||'—'}</p>
+      </div>
+      <div><button class="btn btn-ghost" onclick="window.print()">⬇ PDF</button></div>
+    </div>
+    <div class="g4">
+      ${avCard('Avance global',avG)}${avCard('Fortalecimiento',avFc)}${avCard('Demanda',avDem)}${avCard('Articulación',avArt)}
+    </div>
+    <div class="card">
+      <div class="ct">Participantes <span class="cb">${part.length}</span></div>
+      <table class="tbl"><thead><tr><th>Organización</th><th>Tipo</th><th>Rol</th></tr></thead><tbody>${partRows}</tbody></table>
+    </div>
+    <div class="g2">
+      <div class="card"><div class="ct">Fortalecimiento <span class="cb">${fc.length}</span></div><table class="tbl"><thead><tr><th>Necesidad</th><th>Categoría</th><th>Estado</th></tr></thead><tbody>${fcRows}</tbody></table></div>
+      <div class="card"><div class="ct">Demanda <span class="cb">${dem.length}</span></div><table class="tbl"><thead><tr><th>Iniciativa</th><th>Tipo de apoyo</th><th>Estado</th></tr></thead><tbody>${demRows}</tbody></table></div>
+    </div>
+    <div class="card"><div class="ct">Articulación institucional <span class="cb">${art.length}</span></div><table class="tbl"><thead><tr><th>Gestión</th><th>Categoría</th><th>Estado</th></tr></thead><tbody>${artRows}</tbody></table></div>
+    ${(()=>{
+      var gec=function(p){var ks=Object.keys(p);var k=ks.find(function(k){return k.toUpperCase().indexOf('ESPACIO')>=0&&k.toUpperCase().indexOf('ARTICULACI')>=0;});return k?p[k]:'';};
+      var portEsp=(DATA.portafolio||[]).filter(function(p){
+        var pv=gec(p).trim().toUpperCase(),en=(e.nombre_espacio||'').trim().toUpperCase();
+        return pv===en;
+      });
+      if(!portEsp.length)return '';
+      return '<div class="card" style="margin-top:12px"><div class="ct">Portafolio de proyectos <span class="cb">'+portEsp.length+' proyectos</span></div>'
+        +'<table class="tbl"><thead><tr><th>Proyecto</th><th>Entidad</th><th>Modalidad</th><th>ODS</th></tr></thead><tbody>'
+        +portEsp.map(function(p){
+          return '<tr><td style="font-size:11px;font-weight:600">'+(p['NOMBRE DEL PROYECTO']||'\u2014')+'</td>'
+            +'<td style="font-size:11px">'+(p['ENTIDAD U ORGANIZACION RESPONSABLE']||'\u2014')+'</td>'
+            +'<td style="font-size:11px">'+(p['MODALIDAD DE COOPERACION ESPERADA']||'\u2014')+'</td>'
+            +'<td style="font-size:11px">'+(p['ODS']||'\u2014')+'</td></tr>';
+        }).join('')+'</tbody></table></div>';
+    })()}
+    <div style="margin-top:8px;padding:8px 12px;background:var(--gray);border-radius:var(--r);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;">
+      <span>SNCIC · APC Colombia · Dirección de Coordinación Interinstitucional</span>
+      <span>Generado: ${new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})}</span>
+    </div>`;
+}
+
+// Descargar tabla como Excel con nombre del espacio
+function descargarExcel(datos, nombreArchivo, nombreHoja){
+  if(!datos || !datos.length) return;
+  const ws = XLSX.utils.json_to_sheet(datos);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+  XLSX.writeFile(wb, nombreArchivo + '.xlsx');
+}
+function descargarExcelConNombre(datos, nombreArchivo, nombreHoja){
+  if(!datos || !datos.length) return;
+  // Enriquecer con nombre del espacio
+  const espIndex = {};
+  (DATA.espacios||[]).forEach(e=>{ espIndex[String(e.codigo_espacio)]=e.nombre_espacio; });
+  const enriquecido = datos.map(row=>({
+    nombre_espacio: espIndex[String(row.codigo_espacio)] || row.codigo_espacio,
+    ...row
+  }));
+  const ws = XLSX.utils.json_to_sheet(enriquecido);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+  XLSX.writeFile(wb, nombreArchivo + '.xlsx');
+}
+
+function renderActores(){
+  var part=DATA.participantes||[];
+  var total=part.length||1;
+  var uniqueOrgs=new Set(part.map(function(p){return p.nombre_organizacion||p.nombre_si_no_publico||'';}).filter(Boolean)).size;
+  var tiposSeen={};var tiposArr=[];
+  part.forEach(function(p){var t=p.tipo_organizacion||'Sin clasificar';if(!tiposSeen[t]){tiposSeen[t]=0;tiposArr.push(t);}tiposSeen[t]++;});
+  tiposArr.sort(function(a,b){return tiposSeen[b]-tiposSeen[a];});
+  var kpisEl=document.getElementById('a-kpis');
+  if(kpisEl)kpisEl.innerHTML=[
+    {lbl:'Total participantes',val:part.length,cls:''},
+    {lbl:'Organizaciones únicas',val:uniqueOrgs,cls:'cyan'},
+    {lbl:'Tipos de organización',val:tiposArr.length,cls:'orange'}
+  ].map(function(k){return'<div class="kpi '+k.cls+'"><div class="kpi-l">'+k.lbl+'</div><div class="kpi-v">'+k.val+'</div></div>';}).join('');
+  var badgeEl=document.getElementById('a-tipo-badge');
+  if(badgeEl)badgeEl.textContent=tiposArr.length+' tipos';
+  var listaEl=document.getElementById('a-tipo-lista');
+  if(listaEl)listaEl.innerHTML=tiposArr.map(function(t){
+    var n=tiposSeen[t];
+    return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--mid);">'
+      +'<span style="flex:1;font-size:12px">'+t+'</span>'
+      +'<div style="width:'+Math.round(n/total*180)+'px;height:6px;background:#1368aa;border-radius:3px;"></div>'
+      +'<span style="font-family:Montserrat,sans-serif;font-size:12px;font-weight:700;color:#1368aa;width:30px;text-align:right">'+n+'</span>'
+      +'</div>';
+  }).join('');
+  buscarActor();
+}
+function buscarActor(){
+  var q=((document.getElementById('a-busq')||{}).value||'').toLowerCase();
+  var fTipoOrg=((document.getElementById('a-f-tipoorg')||{}).value||'');
+  var fEspA=((document.getElementById('a-f-esp')||{}).value||'');
+  var part=DATA.participantes||[];
+  var filtered=part.filter(function(p){
+    var nombre=(p.nombre_organizacion||p.nombre_si_no_publico||'').toLowerCase();
+    if(q&&nombre.indexOf(q)<0)return false;
+    if(fTipoOrg&&p.tipo_organizacion!==fTipoOrg)return false;
+    if(fEspA&&String(p.codigo_espacio)!==String(fEspA))return false;
+    return true;
+  });
+  var tbody=document.getElementById('a-tbody');if(!tbody)return;
+  tbody.innerHTML=filtered.slice(0,100).map(function(p){
+    return'<tr><td style="font-size:11px;font-weight:600">'+(p.nombre_organizacion||p.nombre_si_no_publico||'—')+'</td>'
+      +'<td style="font-size:11px;color:var(--muted)">'+(p.tipo_organizacion||'—')+'</td>'
+      +'<td>'+bStyle(p.rol||'—')+'</td>'
+      +'<td style="font-size:11px">'+getNombreEsp(p.codigo_espacio)+'</td>'
+      +'<td>'+bStyle(getTipoEsp(p.codigo_espacio))+'</td></tr>';
+  }).join('')||'<tr><td colspan="5" style="color:#aaa;padding:12px">Sin resultados</td></tr>';
+  if(filtered.length>100)tbody.innerHTML+='<tr><td colspan="5" style="color:#aaa;font-size:11px;text-align:center;padding:8px">Mostrando 100 de '+filtered.length+'</td></tr>';
+}
+
+window._portFiltro={tipo:'',esp:'',modal:'',dep:'',ods:'',enfoque:'',q:''};
+function setFiltroPort(campo,valor){
+  if(window._portFiltro[campo]===valor){window._portFiltro[campo]='';}else{window._portFiltro[campo]=valor;}
+  renderPortafolio();
+}
+function limpiarFiltrosPort(){
+  window._portFiltro={tipo:'',esp:'',modal:'',dep:'',ods:'',enfoque:'',q:''};
+  ['port-f-tipo','port-f-esp','port-f-modal'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var b=document.getElementById('port-busq-txt');if(b)b.value='';
+  renderPortafolio();
+}
+function barraClickeable(datos,elId,badgeId,color,campo){
+  var filtroActivo=window._portFiltro?window._portFiltro[campo]:'';
+  var t=datos.reduce(function(s,e){return s+e[1];},0)||1;
+  var badgeEl=document.getElementById(badgeId);if(badgeEl)badgeEl.textContent=datos.length+' elementos';
+  var el=document.getElementById(elId);if(!el)return;
+  el.innerHTML=datos.map(function(entry){
+    var activo=filtroActivo===entry[0];
+    return'<div class="port-filtro-barra" data-campo="'+campo+'" data-valor="'+entry[0].replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--mid);cursor:pointer;'+(activo?'background:#e8f0fe;border-radius:4px;padding-left:4px;':'')+'">'
+      +'<span style="flex:1;font-size:11px;'+(activo?'font-weight:700;color:#003087':'')+'">'+(entry[0]||'—')+'</span>'
+      +'<div style="width:'+Math.round(entry[1]/t*160)+'px;height:6px;background:'+(activo?'#003087':color)+';border-radius:3px;"></div>'
+      +'<span style="font-family:Montserrat,sans-serif;font-size:12px;font-weight:700;color:'+(activo?'#003087':color)+';width:25px;text-align:right">'+entry[1]+'</span></div>';
+  }).join('');
+  el.querySelectorAll('.port-filtro-barra').forEach(function(div){
+    div.addEventListener('click',function(){setFiltroPort(this.dataset.campo,this.dataset.valor);});
+  });
+}
+var PORT_CAMPOS=[
+  ['NOMBRE DEL PROYECTO','Nombre del proyecto'],['FECHA DE INGRESO','Fecha de ingreso'],
+  ['ENTIDAD U ORGANIZACION RESPONSABLE','Entidad responsable'],
+  ['CORREO ELECTRONICO DEL RESPONSABLE DEL PROYECTO','Correo'],
+  ['CELULAR DEL RESPONSABLE DEL PROYECTO','Celular'],
+  ['OBJETIVO GENERAL','Objetivo general'],['OBJETIVO ESPECIFICO 1','Obj. específico 1'],
+  ['OBJETIVO ESPECIFICO 2','Obj. específico 2'],['OBJETIVO ESPECIFICO 3','Obj. específico 3'],
+  ['PRODUCTO/RESULTADO 1','Producto 1'],['PRODUCTO/RESULTADO 2','Producto 2'],['PRODUCTO/RESULTADO 3','Producto 3'],
+  ['BENEFICIARIOS','Beneficiarios'],['TIEMPO DE EJECUCION DEL PROYECTO','Tiempo ejecución'],
+  ['DEPARTAMENTO','Departamento'],['MUNICIPIOS (OPCIONAL)','Municipios'],
+  ['PRESUPUESTO ESTIMADO DEL PROYECTO (USD)','Presupuesto (USD)'],
+  ['MODALIDAD DE COOPERACION ESPERADA','Modalidad'],['ODS','ODS'],
+  ['ENCI 2023- 2026 PRINCIPAL','ENCI principal'],['ENFOQUE TEMATICO','Enfoque temático'],
+];
+function abrirFicha(idx){
+  var p=(DATA.portafolio||[])[idx];if(!p)return;
+  document.getElementById('port-modal-title').textContent=p['NOMBRE DEL PROYECTO']||'Sin nombre';
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">';
+  var largas=['OBJETIVO GENERAL','OBJETIVO ESPECIFICO 1','OBJETIVO ESPECIFICO 2','OBJETIVO ESPECIFICO 3','PRODUCTO/RESULTADO 1','PRODUCTO/RESULTADO 2','PRODUCTO/RESULTADO 3'];
+  PORT_CAMPOS.forEach(function(par){
+    var col=Object.keys(p).find(function(k){return k.trim()===par[0].trim();});
+    var val=col?(p[col]||'').trim():'';
+    if(!val||val==='nan')return;
+    var esLarga=largas.indexOf(par[0])>=0;
+    html+='<div style="'+(esLarga?'grid-column:1/-1;':'')+'padding:8px 10px;border-bottom:1px solid #F0F0F0">'
+      +'<div style="font-size:9px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em;font-family:Montserrat,sans-serif;margin-bottom:2px">'+par[1]+'</div>'
+      +'<div style="font-size:12px;line-height:1.5">'+val+'</div></div>';
+  });
+  html+='</div>';
+  document.getElementById('port-modal-body').innerHTML=html;
+  document.getElementById('port-modal').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function cerrarFicha(){document.getElementById('port-modal').style.display='none';document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarFicha();});
+function renderPortafolio(){
+  var portAll=DATA.portafolio||[];
+  // Leer filtros del DOM (desplegables) Y de _portFiltro (filtros interactivos de gráficas)
+  var fTipo=(document.getElementById('port-f-tipo')||{value:''}).value||window._portFiltro.tipo||'';
+  var fEsp=(document.getElementById('port-f-esp')||{value:''}).value||window._portFiltro.esp||'';
+  var fModal=(document.getElementById('port-f-modal')||{value:''}).value||window._portFiltro.modal||'';
+  var fDep=window._portFiltro.dep,fOds=window._portFiltro.ods,fEnfoque=window._portFiltro.enfoque;
+  var q=(window._portFiltro.q||'').toLowerCase();
+  if(!portAll.length){var tb=document.getElementById('port-tbody');if(tb)tb.innerHTML='<tr><td colspan="5" style="color:#aaa;padding:16px;text-align:center">Sin datos del portafolio.</td></tr>';return;}
+  var port=portAll.filter(function(p){
+    var espVal=getEspCol(p).trim();
+    if(fTipo&&getEspNombre(espVal).tipo!==fTipo)return false;
+    if(fEsp&&espVal!==fEsp)return false;
+    if(fModal){var mods=String(p['MODALIDAD DE COOPERACION ESPERADA']||'').split(',').map(function(m){return m.trim();});if(!mods.some(function(m){return m===fModal;}))return false;}
+    if(fDep){var deps=String(p['DEPARTAMENTO']||'').split(/[,;\/]+/).map(function(d){return d.trim();});if(!deps.some(function(d){return d===fDep;}))return false;}
+    if(fOds){var ods=String(p['ODS']||'').split(',').map(function(o){return o.trim();});if(!ods.some(function(o){return o===fOds;}))return false;}
+    if(fEnfoque){var enf=String(p['ENFOQUE TEMATICO']||'').split(',').map(function(e){return e.trim();});if(!enf.some(function(e){return e===fEnfoque;}))return false;}
+    if(q&&!(p['NOMBRE DEL PROYECTO']||'').toLowerCase().includes(q)&&!(p['ENTIDAD U ORGANIZACION RESPONSABLE']||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  var total=port.length;
+  var portTerr=port.filter(function(p){return getEspNombre(getEspCol(p).trim()).tipo==='Territorial';}).length;
+  var portSect=port.filter(function(p){return getEspNombre(getEspCol(p).trim()).tipo==='Sectorial';}).length;
+  var kpisEl=document.getElementById('port-kpis');
+  if(kpisEl)kpisEl.innerHTML=[
+    {lbl:'Total proyectos',val:portAll.length,cls:''},
+    {lbl:'Espacios territoriales',val:portTerr,cls:'cyan'},
+    {lbl:'Espacios sectoriales',val:portSect,cls:'teal'},
+  ].map(function(k){return'<div class="kpi '+k.cls+'"><div class="kpi-l">'+k.lbl+'</div><div class="kpi-v">'+k.val+'</div></div>';}).join('');
+  function barras(datos,elId,badgeId,color){
+    var t2=datos.reduce(function(s,e){return s+e[1];},0)||1;
+    var badge=document.getElementById(badgeId);if(badge)badge.textContent=datos.length+' elementos';
+    var el=document.getElementById(elId);
+    if(el)el.innerHTML=datos.map(function(entry){var n=entry[1];return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--mid)"><span style="flex:1;font-size:11px">'+entry[0]+'</span><div style="width:'+Math.round(n/t2*160)+'px;height:6px;background:'+color+';border-radius:3px"></div><span style="font-family:Montserrat,sans-serif;font-size:12px;font-weight:700;color:'+color+';width:25px;text-align:right">'+n+'</span></div>';}).join('');
+  }
+  var porEsp={};port.forEach(function(p){var e=getEspCol(p).trim()||'Sin espacio';porEsp[e]=(porEsp[e]||0)+1;});
+  barraClickeable(Object.entries(porEsp).sort(function(a,b){return b[1]-a[1];}).slice(0,12),'port-por-esp','port-esp-badge','#1368aa','esp');
+  var porModal={};port.forEach(function(p){String(p['MODALIDAD DE COOPERACION ESPERADA']||'').split(',').forEach(function(m){var mm=m.trim();if(mm)porModal[mm]=(porModal[mm]||0)+1;});});
+  barraClickeable(Object.entries(porModal).sort(function(a,b){return b[1]-a[1];}).slice(0,8),'port-por-modal','port-modal-badge','#f26a4f','modal');
+  var porODS={};port.forEach(function(p){String(p['ODS']||'').split(',').forEach(function(o){var oo=o.trim();if(oo&&oo!='nan')porODS[oo]=(porODS[oo]||0)+1;});});
+  barraClickeable(Object.entries(porODS).sort(function(a,b){return b[1]-a[1];}).slice(0,10),'port-por-ods','port-ods-badge','#00696B','ods');
+  var porEf={};port.forEach(function(p){String(p['ENFOQUE TEMATICO']||'').split(',').forEach(function(e){var ee=e.trim();if(ee&&ee!='nan')porEf[ee]=(porEf[ee]||0)+1;});});
+  barraClickeable(Object.entries(porEf).sort(function(a,b){return b[1]-a[1];}).slice(0,10),'port-por-enfoque','port-enfoque-badge','#0078C8','enfoque');
+  var porDep={};var contNacional=0;
+  port.forEach(function(p){String(p['DEPARTAMENTO']||'').split(/[,;\/]+/).map(function(d){return d.trim();}).filter(Boolean).forEach(function(d){
+    if(d.toUpperCase().includes('NACIONAL')){contNacional++;}else{porDep[d]=(porDep[d]||0)+1;}
+  });});
+  var sortDep=Object.entries(porDep).sort(function(a,b){return b[1]-a[1];});
+  var depBadge=document.getElementById('port-dep-badge');if(depBadge)depBadge.textContent=sortDep.length+' departamentos';
+  var filtDep=window._portFiltro.dep;
+  var depEl=document.getElementById('port-por-dep');
+  if(depEl){depEl.innerHTML=sortDep.map(function(entry){var n=entry[1],t2=total||1,activo=filtDep===entry[0];return'<div class="port-filtro-barra" data-campo="dep" data-valor="'+entry[0].replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--mid);break-inside:avoid;cursor:pointer;'+(activo?'background:#e8f0fe;border-radius:4px;padding-left:4px;':'')+'">'+'<span style="flex:1;font-size:11px;'+(activo?'font-weight:700;color:#003087':'')+'">'+entry[0]+'</span>'+'<div style="width:'+Math.round(n/t2*80)+'px;height:5px;background:'+(activo?'#003087':'#033270')+';border-radius:3px"></div>'+'<span style="font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;color:'+(activo?'#003087':'#033270')+';width:22px;text-align:right">'+n+'</span></div>';}).join('');
+  depEl.querySelectorAll('.port-filtro-barra').forEach(function(div){div.addEventListener('click',function(){setFiltroPort(this.dataset.campo,this.dataset.valor);});});}
+  var badge=document.getElementById('port-badge');if(badge)badge.textContent=total+' proyectos';
+  var filtActEl=document.getElementById('port-filtro-activo');
+  if(filtActEl){var activos=Object.entries(window._portFiltro||{}).filter(function(e){return e[1]&&e[0]!=='q';}).map(function(e){return e[1];});filtActEl.textContent=activos.length?'· Filtrando por: '+activos.join(', '):'';}
+  var buscEl=document.getElementById('port-busq-txt');if(buscEl&&window._portFiltro.q)buscEl.value=window._portFiltro.q;
+  var tbody=document.getElementById('port-tbody');
+  if(tbody)tbody.innerHTML=port.slice(0,200).map(function(p,idx){
+    var esp=getEspCol(p).trim()||'—';
+    return'<tr onclick="abrirFicha('+portAll.indexOf(p)+')" style="cursor:pointer">'
+      +'<td style="font-size:11px;font-weight:600;max-width:220px;color:#003087">'+(p['NOMBRE DEL PROYECTO']||'—')+'</td>'
+      +'<td style="font-size:11px">'+esp+'</td><td>'+bStyle(getEspNombre(esp).tipo||'—')+'</td>'
+      +'<td style="font-size:11px;max-width:160px">'+(p['ENTIDAD U ORGANIZACION RESPONSABLE']||'—')+'</td>'
+      +'<td style="font-size:11px;max-width:140px">'+(p['MODALIDAD DE COOPERACION ESPERADA']||'—')+'</td>'
+      +'</tr>';
+  }).join('')||'<tr><td colspan="5" style="color:#aaa;padding:12px">Sin proyectos para los filtros seleccionados</td></tr>';
+}
+function poblarSelectPortafolio(){
+  var portAll=DATA.portafolio||[];
+  var fTipo=window._portFiltro?window._portFiltro.tipo:'';
+  var espacios=new Set(portAll.filter(function(p){if(!fTipo)return true;return getEspNombre(getEspCol(p).trim()).tipo===fTipo;}).map(function(p){return getEspCol(p).trim();}).filter(Boolean));
+  var sel=document.getElementById('port-f-esp');
+  if(sel){sel.innerHTML='<option value="">Espacio (todos)</option>';[...espacios].sort().forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;sel.appendChild(o);});}
+  var modSet=new Set();portAll.forEach(function(p){String(p['MODALIDAD DE COOPERACION ESPERADA']||'').split(',').forEach(function(m){var mm=m.trim();if(mm&&mm!=='nan')modSet.add(mm);});});
+  var selMod=document.getElementById('port-f-modal');
+  if(selMod){selMod.innerHTML='<option value="">Modalidad (todas)</option>';[...modSet].sort().forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;selMod.appendChild(o);});}
+}
+
+// Nav
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Mapa — GeoJSON embebido (funciona sin conexión a internet)
+function initMap(){
+  const wrap=document.getElementById('map-wrap');
+  const W=wrap.clientWidth||370,H=330;
+  const svg=d3.select('#map-svg').attr('viewBox',`0 0 ${W} ${H}`);
+  const tt=document.getElementById('mtt');
+  const byDep={};
+  (DATA.espacios||[]).filter(e=>e.tipo_espacio==='Territorial').forEach(e=>{
+    const cod=String(e.codigo_espacio).trim().replace(/CE$/,'').replace(/^0+/,'');
+    byDep[cod]=e;
+    // También indexar por nombre normalizado para fallback
+    if(e.nombre_espacio) byDep['_'+e.nombre_espacio.toUpperCase().trim()]=e;
+  });
+  // Debug: ver qué códigos tenemos
+  console.log('byDep keys:', Object.keys(byDep).filter(k=>!k.startsWith('_')));
+  function depColor(cod,nombreDpto){
+    let e=byDep[cod];
+    // Fallback por nombre si no encontró por código
+    if(!e && nombreDpto) e=byDep['_'+nombreDpto.toUpperCase().trim()];
+    if(!e)return'#dde4ec';
+    const dem=(DATA.demanda||[]).filter(x=>String(x.codigo_espacio)===String(e.codigo_espacio));
+    const fc=(DATA.fortalecimiento||[]).filter(x=>String(x.codigo_espacio)===String(e.codigo_espacio));
+    const art=(DATA.articulacion||[]).filter(x=>String(x.codigo_espacio)===String(e.codigo_espacio));
+    const all=[...dem,...fc,...art];
+    return all.length?avColor(calcAv(all).pct):'#c5d3e0';
+  }
+  function getProp(d){return String(d.properties.DPTO||'').replace(/^0+/,'');}
+  const geo=__COLOMBIA_GEO__;
+  const mains=geo.features.filter(f=>getProp(f)!=='88');
+  const proj=d3.geoMercator().fitExtent([[10,20],[W-10,H-28]],{type:'FeatureCollection',features:mains});
+  const path=d3.geoPath().projection(proj);
+  svg.selectAll('path.dep').data(geo.features).enter().append('path').attr('class','dep')
+    .attr('d',d=>getProp(d)==='88'?'':path(d))
+    .attr('fill',d=>depColor(getProp(d),d.properties.NOMBRE_DPT||'')).attr('stroke','#fff').attr('stroke-width',.6)
+    .on('mousemove',function(ev,d){
+      const cod=getProp(d);const e=byDep[cod];if(!e)return;
+      const r=wrap.getBoundingClientRect();
+      tt.style.opacity='1';tt.style.left=(ev.clientX-r.left+14)+'px';tt.style.top=(ev.clientY-r.top-14)+'px';
+      const dem=(DATA.demanda||[]).filter(x=>String(x.codigo_espacio)===String(e.codigo_espacio));
+      const fc=(DATA.fortalecimiento||[]).filter(x=>String(x.codigo_espacio)===String(e.codigo_espacio));
+      const av=calcAv([...dem,...fc]);
+      tt.innerHTML=`<strong>${e.nombre_espacio}</strong>${e.responsable_apc||'—'} · Avance ${av.pct}%`;
+    }).on('mouseleave',()=>tt.style.opacity='0');
+  // San Andrés — recuadro con proyección fija (coordenadas conocidas)
+  const saEsp = byDep['88'] || byDep['088'] ||
+    (DATA.espacios||[]).find(e=>
+      String(e.codigo_espacio).replace(/CE$/,'').trim()==='88' ||
+      (e.nombre_espacio||'').toUpperCase().includes('SAN ANDR')
+    );
+  const saColor = saEsp ? (()=>{
+    const dem=(DATA.demanda||[]).filter(x=>String(x.codigo_espacio)===String(saEsp.codigo_espacio));
+    const fc=(DATA.fortalecimiento||[]).filter(x=>String(x.codigo_espacio)===String(saEsp.codigo_espacio));
+    const art=(DATA.articulacion||[]).filter(x=>String(x.codigo_espacio)===String(saEsp.codigo_espacio));
+    const all=[...dem,...fc,...art];
+    return all.length?avColor(calcAv(all).pct):'#c5d3e0';
+  })() : '#dde4ec';
+  const BW=60,BH=60,BX=W-BW-8,BY=H-BH-18;
+  svg.append('rect').attr('x',BX-1).attr('y',BY-1).attr('width',BW+2).attr('height',BH+2)
+    .attr('fill','#f0f4f8').attr('stroke','#b0bec5').attr('stroke-width',1).attr('stroke-dasharray','3,2');
+  // Proyección fija centrada en San Andrés (81.7°W, 12.5°N)
+  const saProj = d3.geoMercator()
+    .center([-81.72, 12.53])
+    .scale(18000)
+    .translate([BX + BW/2, BY + BH/2]);
+  const saPath = d3.geoPath().projection(saProj);
+  const saFeat = geo.features.find(f=>getProp(f)==='88');
+  if(saFeat){
+    svg.append('path').datum(saFeat).attr('d',saPath)
+      .attr('fill',saColor).attr('stroke','#fff').attr('stroke-width',.8);
+  } else {
+    // Si no hay feature, dibujar un círculo de color
+    svg.append('circle').attr('cx',BX+BW/2).attr('cy',BY+BH/2).attr('r',12)
+      .attr('fill',saColor).attr('stroke','#fff').attr('stroke-width',.8);
+  }
+  svg.append('text').attr('x',BX+BW/2).attr('y',BY+BH+10)
+    .attr('text-anchor','middle').attr('font-size',8).attr('fill','#888')
+    .attr('font-family','Open Sans,sans-serif').text('San Andrés');
+  document.getElementById('map-leg').innerHTML=[{c:'#033270',l:'≥80%'},{c:'#1368aa',l:'50–79%'},{c:'#f26a4f',l:'30–49%'},{c:'#ef3c2d',l:'<30%'},{c:'#c5d3e0',l:'Sin datos'}]
+    .map(x=>`<div class="leg-i"><div class="leg-d" style="background:${x.c}"></div>${x.l}</div>`).join('');
+}
+
+poblarSelectsComponentes();
+renderAll();
+initMap();
+renderActores();
+poblarSelectPortafolio();
+renderPortafolio();
+</script>
+</body>
+</html>
