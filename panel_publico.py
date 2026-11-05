@@ -21,6 +21,13 @@ HOJAS = {
     "portafolio":      "Portafolio",
 }
 
+# Datos personales y notas internas: el panel no los muestra, así que no se envían al navegador
+COLUMNAS_PRIVADAS = [
+    "contacto_nombre", "contacto_entidad", "contacto_correo", "contacto_cargo",
+    "usuario_editor", "observaciones", "observaciones_gestion",
+    "PERSONA RESPONSABLE", "CARGO DEL RESPONSABLE DEL PROYECTO", "ENLACE",
+]
+
 @st.cache_resource(ttl=300)
 def get_client():
     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=SCOPES)
@@ -37,6 +44,7 @@ def leer_hoja(nombre):
 
 def df_to_records(df):
     if df.empty: return []
+    df = df.drop(columns=COLUMNAS_PRIVADAS, errors="ignore")
     return df.fillna("").astype(str).to_dict(orient="records")
 
 @st.cache_data(ttl=120)
